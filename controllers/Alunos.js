@@ -1,11 +1,69 @@
 const db = require('../database/connection');
 
+// --- Function para formato data do brasil (DD/MM/AAAA) ---
+const formatarDataPtBR = (dataISO) => {
+    if (!dataISO) return null;
+    const data = new Date(dataISO);
+    
+    
+    const dia = String(data.getUTCDate()).padStart(2, '0');
+    const mes = String(data.getUTCMonth() + 1).padStart(2, '0'); 
+    const ano = data.getUTCFullYear();
+    
+    return `${dia}/${mes}/${ano}`;
+};
+
 module.exports = {
+
+    //Cadastro dos alunos
+    async cadastrarAluno(request, response) {
+        try {
+            // Recebe os dados pelo corpo da requisição (JSON)
+            const { nome, data_nascimento, sala } = request.body;
+
+            // Valida se a sala é válida
+            if (!sala || !['a', 'b', 'c'].includes(sala.toLowerCase())) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Sala inválida ou não informada. Use: a, b ou c.',
+                    dados: null
+                });
+            }
+
+            // Seleciona a tabela correta
+            const tabela = `alunos_sala_${sala.toLowerCase()}`;
+            
+            // Comando SQL de INSERT
+            const sql = `INSERT INTO ${tabela} (nome, data_nascimento) VALUES (?, ?)`;
+            const values = [nome, data_nascimento];
+
+            const execucao = await db.query(sql, values);
+            const idNovoAluno = execucao[0].insertId;
+
+            return response.status(201).json({ // 201 = Created
+                sucesso: true,
+                mensagem: `Aluno cadastrado com sucesso na Sala ${sala.toUpperCase()}.`,
+                dados: { 
+                    id: idNovoAluno,
+                    nome,
+                    data_nascimento
+                }
+            });
+
+        } catch (error) {
+            return response.status(500).json({
+                sucesso: false,
+                mensagem: 'Erro ao cadastrar aluno.',
+                dados: error.message
+            });
+        }
+    },
+
+    //Listagem completa dos alunos de cada Sala
     async listarPorSala(request, response) {
         try {
             const { sala } = request.params;
 
-            // Validação básica para evitar SQL Injection na concatenação da tabela
             if (!['a', 'b', 'c'].includes(sala.toLowerCase())) {
                 return response.status(400).json({
                     sucesso: false,
@@ -15,16 +73,24 @@ module.exports = {
             }
 
             const tabela = `alunos_sala_${sala.toLowerCase()}`;
-            const sql = `SELECT id, nome, data_nascimento FROM ${tabela}`;
+            const sql = `SELECT * FROM ${tabela}`;
             
             const alunos = await db.query(sql);
-            const nItens = alunos[0].length;
+            const dadosBrutos = alunos[0];
+
+            //formatação para mostrar a data dia/mes/ano
+            const dadosFormatados = dadosBrutos.map(aluno => {
+                return {
+                    ...aluno,
+                    data_nascimento: formatarDataPtBR(aluno.data_nascimento) // Substitui a data
+                };
+            });
 
             return response.status(200).json({
                 sucesso: true,
                 mensagem: `Lista de alunos da Sala ${sala.toUpperCase()}.`,
-                dados: alunos[0],
-                nItens
+                dados: dadosFormatados,
+                nItens: dadosFormatados.length
             });
 
         } catch (error) {
@@ -36,6 +102,7 @@ module.exports = {
         }
     },
 
+     //Busca por sobrenome ou nome alves na sala A
      async buscarAlvesSalaA(request, response) {
         try {
             const sql = `
@@ -63,6 +130,7 @@ module.exports = {
         }
     },
 
+    //Busca por sobrenome ou nome alves na sala B
     async buscarAlvesSalaB(request, response) {
         try {
             const sql = `
@@ -90,6 +158,7 @@ module.exports = {
         }
     },
 
+     //Busca por sobrenome ou nome alves na sala C
       async buscarAlvesSalaC(request, response) {
         try {
             const sql = `
@@ -117,6 +186,7 @@ module.exports = {
         }
     },
 
+   // Busca por sobrenome ou nome alves em todas as salas    
     async buscarAlves(request, response) {
         try {
             const sql = `
@@ -147,25 +217,108 @@ module.exports = {
         }
     },
 
+    //Busca dos alunos nascidos antes de 2013
+   async buscarNascidosAntes2013(request, response) {
+        try {
+            const { sala } = request.params; 
+            const termo = sala.toLowerCase();
+            
+            let sql = '';
+            let mensagem = '';
+
+            if (['a', 'b', 'c'].includes(termo)) {
+                sql = `SELECT * FROM alunos_sala_${termo} WHERE data_nascimento < '2013-01-01'`;
+                mensagem = `Busca por alunos nascidos antes de 2013 da sala ${termo.toUpperCase()}.`;
+            } else if (termo === 'todas') {
+                sql = `
+                    SELECT *, 'Sala A' as origem FROM alunos_sala_a WHERE data_nascimento < '2013-01-01'
+                    UNION ALL
+                    SELECT *, 'Sala B' as origem FROM alunos_sala_b WHERE data_nascimento < '2013-01-01'
+                    UNION ALL
+                    SELECT *, 'Sala C' as origem FROM alunos_sala_c WHERE data_nascimento < '2013-01-01';
+                `;
+                mensagem = 'Busca por alunos nascidos antes de 2013 de TODAS as salas.';
+            } else {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Parâmetro inválido. Use: a, b, c ou todas.',
+                    dados: null
+                });
+            }
+
+            const alunos = await db.query(sql);
+            const dadosBrutos = alunos ? alunos[0] : [];
+
+            
+            const dadosFormatados = dadosBrutos.map(aluno => {
+                return {
+                    ...aluno,
+                    data_nascimento: formatarDataPtBR(aluno.data_nascimento)
+                };
+            });
+
+            return response.status(200).json({
+                sucesso: true,
+                mensagem: mensagem,
+                dados: dadosFormatados,
+                nItens: dadosFormatados.length
+            });
+
+        } catch (error) {
+            return response.status(500).json({
+                sucesso: false,
+                mensagem: 'Erro na requisição.',
+                dados: error.message
+            });
+        }
+    },
+
+
     async atualizarDatas(request, response) {
         try {
+            // Pega o parametro da URL (a, b, c ou todas)
+            const { sala } = request.params;
+            const termo = sala ? sala.toLowerCase() : '';
+
+            // Validação
+            if (!['a', 'b', 'c', 'todas'].includes(termo)) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Opção inválida. Escolha: a, b, c ou todas.',
+                    dados: null
+                });
+            }
+
             // Desativa trava de segurança
             await db.query("SET SQL_SAFE_UPDATES = 0;");
             
-            // Executa updates
-            const updateA = await db.query("UPDATE alunos_sala_a SET data_nascimento = CURDATE()");
-            const updateB = await db.query("UPDATE alunos_sala_b SET data_nascimento = CURDATE()");
-            const updateC = await db.query("UPDATE alunos_sala_c SET data_nascimento = CURDATE()");
+            let totalAfetados = 0;
+            let mensagem = '';
+
+            if (termo === 'todas') {
+                // Atualiza TODAS as salas
+                const updateA = await db.query("UPDATE alunos_sala_a SET data_nascimento = CURRENT_DATE()");
+                const updateB = await db.query("UPDATE alunos_sala_b SET data_nascimento = CURRENT_DATE()");
+                const updateC = await db.query("UPDATE alunos_sala_c SET data_nascimento = CURRENT_DATE()");
+                
+                totalAfetados = updateA[0].affectedRows + updateB[0].affectedRows + updateC[0].affectedRows;
+                mensagem = 'Datas de nascimento de TODAS as salas atualizadas para hoje.';
+            
+            } else {
+                // Atualiza UMA sala específica (dinâmico)
+                const tabela = `alunos_sala_${termo}`;
+                const update = await db.query(`UPDATE ${tabela} SET data_nascimento = CURRENT_DATE()`);
+                
+                totalAfetados = update[0].affectedRows;
+                mensagem = `Datas de nascimento da Sala ${termo.toUpperCase()} atualizadas para hoje.`;
+            }
             
             // Reativa trava
             await db.query("SET SQL_SAFE_UPDATES = 1;");
 
-            // Soma o total de linhas afetadas nas 3 tabelas
-            const totalAfetados = updateA[0].affectedRows + updateB[0].affectedRows + updateC[0].affectedRows;
-
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Datas de nascimento atualizadas para hoje com sucesso.',
+                mensagem: mensagem,
                 dados: { linhasAfetadas: totalAfetados }
             });
 
@@ -178,22 +331,31 @@ module.exports = {
         }
     },
 
-    async deletarIntervalo(request, response) {
+   async deletarIntervalo(request, response) {
         try {
+            const { sala } = request.params;
+            const termo = sala ? sala.toLowerCase() : '';
+
+            if (!['a', 'b', 'c'].includes(termo)) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Sala inválida. Escolha apenas: a, b ou c.',
+                    dados: null
+                });
+            }
+
             await db.query("SET SQL_SAFE_UPDATES = 0;");
 
-            const deleteA = await db.query("DELETE FROM alunos_sala_a WHERE id BETWEEN 13 AND 22");
-            const deleteB = await db.query("DELETE FROM alunos_sala_b WHERE id BETWEEN 13 AND 22");
-            const deleteC = await db.query("DELETE FROM alunos_sala_c WHERE id BETWEEN 13 AND 22");
+            const tabela = `alunos_sala_${termo}`;
+            
+            const resultado = await db.query(`DELETE FROM ${tabela} WHERE id BETWEEN 13 AND 22`);
 
             await db.query("SET SQL_SAFE_UPDATES = 1;");
 
-            const totalExcluidos = deleteA[0].affectedRows + deleteB[0].affectedRows + deleteC[0].affectedRows;
-
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Alunos com ID entre 13 e 22 excluídos com sucesso.',
-                dados: { linhasExcluidas: totalExcluidos }
+                mensagem: `Alunos com ID entre 13 e 22 excluídos com sucesso da Sala ${termo.toUpperCase()}.`,
+                dados: { linhasExcluidas: resultado[0].affectedRows }
             });
 
         } catch (error) {
@@ -205,3 +367,4 @@ module.exports = {
         }
     }
 };
+

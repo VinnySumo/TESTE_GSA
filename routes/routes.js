@@ -8,7 +8,9 @@ const AlunoController = require('../controllers/Alunos')
 
  //Alunos
 
- router.get("/alunos/sala/:sala",AlunoController.listarPorSala); //Listar os alunos da sala
+ router.post("/alunos/cadastrar" ,AlunoController.cadastrarAluno) // Cadastro dos alunos
+
+ router.get("/alunos/sala/:sala",AlunoController.listarPorSala); //Listar os alunos da sala escolhida
 
  router.get("/alunos/salaA/alves",AlunoController.buscarAlvesSalaA); //Listar os alunos com nome ou sobrenome alves na sala A
 
@@ -16,6 +18,13 @@ const AlunoController = require('../controllers/Alunos')
 
  router.get("/alunos/salaC/alves",AlunoController.buscarAlvesSalaC); //Listar os alunos com nome ou sobrenome alves na sala C
 
-  router.get("/alunos/busca/alves",AlunoController.buscarAlves); //Listar os alunos com nome ou sobrenome alves em todas as salas
+ router.get("/alunos/busca/alves",AlunoController.buscarAlves); //Listar os alunos com nome ou sobrenome alves em todas as salas
+
+ router.get("/alunos/nascimento/:sala",AlunoController.buscarNascidosAntes2013); //Busca dos alunos nascidos antes de 2013 escolha por sala ou todas as salas
+ 
+ router.patch("/alunos/atualizarData/:sala",AlunoController.atualizarDatas); //Atualizar as datas dos alunos para o dia de hoje
+
+ router.delete("/alunos/apagarAluno/:sala",AlunoController.deletarIntervalo); //Apagar os alunos 13 ao 22 da sala escolhida
+
  
 module.exports = router;
