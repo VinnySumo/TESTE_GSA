@@ -49,7 +49,7 @@ module.exports = {
 
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Busca por sobrenome Alves realizada com sucesso.',
+                mensagem: 'Busca por sobrenome Alves na sala A realizada com sucesso.',
                 dados: alunos[0],
                 nItens
             });
@@ -66,7 +66,7 @@ module.exports = {
     async buscarAlvesSalaB(request, response) {
         try {
             const sql = `
-               SELECT nome, 'Sala A' AS sala_origem 
+               SELECT nome, 'Sala B' AS sala_origem 
                     FROM alunos_sala_b
                 WHERE nome LIKE '%Alves%'
             `;
@@ -76,7 +76,7 @@ module.exports = {
 
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Busca por sobrenome Alves realizada com sucesso.',
+                mensagem: 'Busca por sobrenome Alves na sala B realizada com sucesso.',
                 dados: alunos[0],
                 nItens
             });
@@ -93,8 +93,8 @@ module.exports = {
       async buscarAlvesSalaC(request, response) {
         try {
             const sql = `
-               SELECT nome, 'Sala A' AS sala_origem 
-                    FROM alunos_sala_b
+               SELECT nome, 'Sala C' AS sala_origem 
+                    FROM alunos_sala_C
                 WHERE nome LIKE '%Alves%'
             `;
             
@@ -103,7 +103,7 @@ module.exports = {
 
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Busca por sobrenome Alves realizada com sucesso.',
+                mensagem: 'Busca por sobrenome Alves na sala C realizada com sucesso.',
                 dados: alunos[0],
                 nItens
             });
