@@ -102,110 +102,56 @@ module.exports = {
         }
     },
 
-     //Busca por sobrenome ou nome alves na sala A
-     async buscarAlvesSalaA(request, response) {
+     //Busca por sobrenome ou nome alves na sala 
+     async buscarAlves(request, response) {
         try {
-            const sql = `
-               SELECT nome, 'Sala A' AS sala_origem 
-                    FROM alunos_sala_a 
-                WHERE nome LIKE '%Alves%'
-            `;
-            
-            const alunos = await db.query(sql);
-            const nItens = alunos[0].length;
+            // 1. Pega o parâmetro da URL
+            const { sala } = request.params;
+            const termo = sala ? sala.toLowerCase() : '';
 
+            // 2. Validação
+            if (!['a', 'b', 'c', 'todas'].includes(termo)) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Opção inválida. Escolha: a, b, c ou todas.',
+                    dados: null
+                });
+            }
+
+            let sql = '';
+            let mensagem = '';
+
+            // 3. Define o SQL baseado na escolha
+            if (termo === 'todas') {
+                sql = `
+                    SELECT nome, 'Sala A' as sala_origem FROM alunos_sala_a WHERE nome LIKE '%Alves%'
+                    UNION ALL
+                    SELECT nome, 'Sala B' as sala_origem FROM alunos_sala_b WHERE nome LIKE '%Alves%'
+                    UNION ALL
+                    SELECT nome, 'Sala C' as sala_origem FROM alunos_sala_c WHERE nome LIKE '%Alves%'
+                    ORDER BY nome ASC
+                `;
+                mensagem = 'Busca por sobrenome Alves em todas as salas realizada com sucesso.';
+            
+            } else {
+                // Busca em UMA sala específica
+                const tabela = `alunos_sala_${termo}`;
+                
+                // Nota: Adicionei a coluna sala_origem fixa para manter o padrão do seu código anterior
+                sql = `SELECT nome, 'Sala ${termo.toUpperCase()}' AS sala_origem FROM ${tabela} WHERE nome LIKE '%Alves%' ORDER BY nome ASC`;
+                mensagem = `Busca por sobrenome Alves na Sala ${termo.toUpperCase()} realizada com sucesso.`;
+            }
+
+            // 4. Executa a query
+            const alunos = await db.query(sql);
+            const dados = alunos[0];
+
+            // Retorno
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Busca por sobrenome Alves na sala A realizada com sucesso.',
-                dados: alunos[0],
-                nItens
-            });
-
-        } catch (error) {
-            return response.status(500).json({
-                sucesso: false,
-                mensagem: 'Erro na requisição.',
-                dados: error.message
-            });
-        }
-    },
-
-    //Busca por sobrenome ou nome alves na sala B
-    async buscarAlvesSalaB(request, response) {
-        try {
-            const sql = `
-               SELECT nome, 'Sala B' AS sala_origem 
-                    FROM alunos_sala_b
-                WHERE nome LIKE '%Alves%'
-            `;
-            
-            const alunos = await db.query(sql);
-            const nItens = alunos[0].length;
-
-            return response.status(200).json({
-                sucesso: true,
-                mensagem: 'Busca por sobrenome Alves na sala B realizada com sucesso.',
-                dados: alunos[0],
-                nItens
-            });
-
-        } catch (error) {
-            return response.status(500).json({
-                sucesso: false,
-                mensagem: 'Erro na requisição.',
-                dados: error.message
-            });
-        }
-    },
-
-     //Busca por sobrenome ou nome alves na sala C
-      async buscarAlvesSalaC(request, response) {
-        try {
-            const sql = `
-               SELECT nome, 'Sala C' AS sala_origem 
-                    FROM alunos_sala_C
-                WHERE nome LIKE '%Alves%'
-            `;
-            
-            const alunos = await db.query(sql);
-            const nItens = alunos[0].length;
-
-            return response.status(200).json({
-                sucesso: true,
-                mensagem: 'Busca por sobrenome Alves na sala C realizada com sucesso.',
-                dados: alunos[0],
-                nItens
-            });
-
-        } catch (error) {
-            return response.status(500).json({
-                sucesso: false,
-                mensagem: 'Erro na requisição.',
-                dados: error.message
-            });
-        }
-    },
-
-   // Busca por sobrenome ou nome alves em todas as salas    
-    async buscarAlves(request, response) {
-        try {
-            const sql = `
-                SELECT nome, 'Sala A' as sala_origem FROM alunos_sala_a WHERE nome LIKE '%Alves%'
-                UNION ALL
-                SELECT nome, 'Sala B' as sala_origem FROM alunos_sala_b WHERE nome LIKE '%Alves%'
-                UNION ALL
-                SELECT nome, 'Sala C' as sala_origem FROM alunos_sala_c WHERE nome LIKE '%Alves%'
-                ORDER BY nome ASC
-            `;
-            
-            const alunos = await db.query(sql);
-            const nItens = alunos[0].length;
-
-            return response.status(200).json({
-                sucesso: true,
-                mensagem: 'Busca por sobrenome Alves de todas as salas realizada com sucesso.',
-                dados: alunos[0],
-                nItens
+                mensagem: mensagem,
+                dados: dados,
+                nItens: dados.length
             });
 
         } catch (error) {
@@ -276,7 +222,7 @@ module.exports = {
 
     async atualizarDatas(request, response) {
         try {
-            // Pega o parametro da URL (a, b, c ou todas)
+            // Pega o parâmetro da URL (a, b, c ou todas)
             const { sala } = request.params;
             const termo = sala ? sala.toLowerCase() : '';
 

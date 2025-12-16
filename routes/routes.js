@@ -8,23 +8,17 @@ const AlunoController = require('../controllers/Alunos')
 
  //Alunos
 
- router.post("/alunos/cadastrar" ,AlunoController.cadastrarAluno) // Cadastro dos alunos
+ router.post("/alunos/cadastrar" ,AlunoController.cadastrarAluno) // Cadastro dos alunos #teste 5
 
- router.get("/alunos/sala/:sala",AlunoController.listarPorSala); //Listar os alunos da sala escolhida
+ router.get("/alunos/sala/:sala",AlunoController.listarPorSala); //Listar os alunos da sala escolhida #teste 1
 
- router.get("/alunos/salaA/alves",AlunoController.buscarAlvesSalaA); //Listar os alunos com nome ou sobrenome alves na sala A
+ router.get("/alunos/buscaAlves/:sala",AlunoController.buscarAlves); //Listar os alunos com nome ou sobrenome alves da sala escolhida #teste 2
 
- router.get("/alunos/salaB/alves",AlunoController.buscarAlvesSalaB); //Listar os alunos com nome ou sobrenome alves na sala B
-
- router.get("/alunos/salaC/alves",AlunoController.buscarAlvesSalaC); //Listar os alunos com nome ou sobrenome alves na sala C
-
- router.get("/alunos/busca/alves",AlunoController.buscarAlves); //Listar os alunos com nome ou sobrenome alves em todas as salas
-
- router.get("/alunos/nascimento/:sala",AlunoController.buscarNascidosAntes2013); //Busca dos alunos nascidos antes de 2013 escolha por sala ou todas as salas
+ router.get("/alunos/nascimento/:sala",AlunoController.buscarNascidosAntes2013); //Busca dos alunos nascidos antes de 2013 da sala escolhida #teste 3
  
- router.patch("/alunos/atualizarData/:sala",AlunoController.atualizarDatas); //Atualizar as datas dos alunos para o dia de hoje
+ router.patch("/alunos/atualizarData/:sala",AlunoController.atualizarDatas); //Atualizar as datas dos alunos para o dia atual #teste 4
 
- router.delete("/alunos/apagarAluno/:sala",AlunoController.deletarIntervalo); //Apagar os alunos 13 ao 22 da sala escolhida
+ router.delete("/alunos/apagarAluno/:sala",AlunoController.deletarIntervalo); //Apagar os alunos 13 ao 22 da sala escolhida #teste 6
 
  
 module.exports = router;
