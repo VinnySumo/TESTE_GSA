@@ -81,6 +81,7 @@ module.exports = {
     },
 
     //Editar informações do aluno
+    // Editar informações de um aluno (Mantendo dados antigos se não forem enviados)
     async editarAluno(request, response) {
         try {
             const { sala, id } = request.params;
@@ -92,21 +93,36 @@ module.exports = {
             }
 
             const tabela = `alunos_sala_${termo}`;
-            
-            // Atualiza Nome, Data e Endereço
-            const sql = `UPDATE ${tabela} SET nome = ?, data_nascimento = ?, endereco = ? WHERE id = ?`;
-            const values = [nome, data_nascimento, endereco, id];
 
-            const [result] = await db.query(sql, values);
+            // Busca os dados do aluno
+            const [rows] = await db.query(`SELECT * FROM ${tabela} WHERE id = ?`, [id]);
 
-            if (result.affectedRows === 0) {
+            if (rows.length === 0) {
                 return response.status(404).json({ sucesso: false, mensagem: 'Aluno não encontrado para edição.', dados: null });
             }
+
+            const alunoAtual = rows[0];
+
+            // função para caso nao mudar alguma coisa no editar e manter a mesma coisa que estava sem deixar o campo "null".
+            const novoNome = nome ? nome : alunoAtual.nome;
+            const novaData = data_nascimento ? data_nascimento : alunoAtual.data_nascimento;
+            const novoEndereco = endereco ? endereco : alunoAtual.endereco;
+
+            // Atualizar no banco com os dados definitivos
+            const sql = `UPDATE ${tabela} SET nome = ?, data_nascimento = ?, endereco = ? WHERE id = ?`;
+            const values = [novoNome, novaData, novoEndereco, id];
+
+            await db.query(sql, values);
 
             return response.status(200).json({
                 sucesso: true,
                 mensagem: 'Dados do aluno atualizados com sucesso.',
-                dados: { id, nome, data_nascimento, endereco }
+                dados: { 
+                    id, 
+                    nome: novoNome, 
+                    data_nascimento: novaData, 
+                    endereco: novoEndereco 
+                }
             });
 
         } catch (error) {
