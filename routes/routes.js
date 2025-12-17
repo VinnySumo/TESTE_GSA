@@ -10,14 +10,6 @@ const AlunoController = require('../controllers/Alunos')
 
  router.post("/sala/cadastrar" ,AlunoController.cadastrarAluno); // Cadastro dos alunos #teste 5
 
- router.get("/sala/:sala/:id", AlunoController.visualizarAluno); // Trazer informações de um aluno
-
- router.put("/sala/:sala/:id", AlunoController.editarAluno); // Editar informações de um aluno
-
- router.delete("/sala/:sala/:id", AlunoController.removerAluno); // Remover aluno
-
- router.get("/sala/:sala",AlunoController.listarPorSala); //Listar os alunos da sala escolhida #teste 1
-
  router.get("/sala/buscaAlves/:sala",AlunoController.buscarAlves); //Listar os alunos com nome ou sobrenome alves da sala escolhida #teste 2
 
  router.get("/sala/nascimento/:sala",AlunoController.buscarNascidosAntes2013); //Busca dos alunos nascidos antes de 2013 da sala escolhida #teste 3
@@ -28,5 +20,13 @@ const AlunoController = require('../controllers/Alunos')
 
  router.delete('/sala/resetar/:sala', AlunoController.resetarTabela); //Resetar as tabelas de aluno da sala escolhida
 
- 
+ router.get("/sala/:sala",AlunoController.listarPorSala); //Listar os alunos da sala escolhida #teste 1
+
+ router.get("/sala/:sala/:id", AlunoController.visualizarAluno); // Trazer informações de um aluno
+  
+ router.put("/sala/:sala/:id", AlunoController.editarAluno); // Editar informações de um aluno
+   
+ router.delete("/sala/:sala/:id", AlunoController.removerAluno); // Remover aluno
+
+
 module.exports = router;

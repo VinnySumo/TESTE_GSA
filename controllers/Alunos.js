@@ -5,12 +5,18 @@ const formatarDataPtBR = (dataISO) => {
     if (!dataISO) return null;
     const data = new Date(dataISO);
     
-    
     const dia = String(data.getUTCDate()).padStart(2, '0');
     const mes = String(data.getUTCMonth() + 1).padStart(2, '0'); 
     const ano = data.getUTCFullYear();
     
     return `${dia}/${mes}/${ano}`;
+};
+
+const formatarDataHoraPtBR = (dataISO) => {
+    if (!dataISO) return null;
+    const data = new Date(dataISO);
+    // Transforma para string brasileira considerando o fuso horário
+    return data.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 };
 
 module.exports = {
@@ -63,10 +69,10 @@ module.exports = {
                 return response.status(404).json({ sucesso: false, mensagem: 'Aluno não encontrado.', dados: null });
             }
 
-            // Formata a data para exibir bonitinho
+           
             const aluno = rows[0];
             aluno.data_nascimento = formatarDataPtBR(aluno.data_nascimento);
-            // Formata a data de inclusão se quiser
+
             if(aluno.data_inclusao) aluno.data_inclusao = new Date(aluno.data_inclusao).toLocaleString('pt-BR');
 
             return response.status(200).json({
@@ -81,7 +87,6 @@ module.exports = {
     },
 
     //Editar informações do aluno
-    // Editar informações de um aluno (Mantendo dados antigos se não forem enviados)
     async editarAluno(request, response) {
         try {
             const { sala, id } = request.params;
@@ -183,7 +188,8 @@ module.exports = {
             const dadosFormatados = dadosBrutos.map(aluno => {
                 return {
                     ...aluno,
-                    data_nascimento: formatarDataPtBR(aluno.data_nascimento) // Substitui a data
+                    data_nascimento: formatarDataPtBR(aluno.data_nascimento),
+                    data_inclusao: formatarDataHoraPtBR(aluno.data_inclusao) 
                 };
             });
 
@@ -296,7 +302,8 @@ module.exports = {
             const dadosFormatados = dadosBrutos.map(aluno => {
                 return {
                     ...aluno,
-                    data_nascimento: formatarDataPtBR(aluno.data_nascimento)
+                    data_nascimento: formatarDataPtBR(aluno.data_nascimento),
+                    data_inclusao: formatarDataHoraPtBR(aluno.data_inclusao)
                 };
             });
 
