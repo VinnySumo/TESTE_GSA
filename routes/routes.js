@@ -8,13 +8,13 @@ const AlunoController = require('../controllers/Alunos')
 
  //Alunos
 
- router.post("/sala/cadastrar" ,AlunoController.cadastrarAluno) // Cadastro dos alunos #teste 5
+ router.post("/sala/cadastrar" ,AlunoController.cadastrarAluno); // Cadastro dos alunos #teste 5
 
- router.get("/sala/:sala/:id", AlunoController.visualizarAluno) // Trazer informações de um aluno
+ router.get("/sala/:sala/:id", AlunoController.visualizarAluno); // Trazer informações de um aluno
 
- router.put("/sala/:sala/:id,", AlunoController.editarAluno) // Editar informações de um aluno
+ router.put("/sala/:sala/:id,", AlunoController.editarAluno); // Editar informações de um aluno
 
- router.delete("/sala/:sala/:id", AlunoController.removerAluno) // Remover aluno
+ router.delete("/sala/:sala/:id", AlunoController.removerAluno); // Remover aluno
 
  router.get("/sala/:sala",AlunoController.listarPorSala); //Listar os alunos da sala escolhida #teste 1
 

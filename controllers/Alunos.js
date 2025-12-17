@@ -43,7 +43,107 @@ module.exports = {
             return response.status(500).json({ sucesso: false, mensagem: 'Erro ao cadastrar.', dados: error.message });
         }
     }, 
-    
+
+    //Mostrar informações do aluno
+    async visualizarAluno(request, response) {
+        try {
+            const { sala, id } = request.params;
+            const termo = sala.toLowerCase();
+
+            if (!['a', 'b', 'c'].includes(termo)) {
+                return response.status(400).json({ sucesso: false, mensagem: 'Sala inválida.', dados: null });
+            }
+
+            const tabela = `alunos_sala_${termo}`;
+            const sql = `SELECT * FROM ${tabela} WHERE id = ?`;
+            
+            const [rows] = await db.query(sql, [id]);
+
+            if (rows.length === 0) {
+                return response.status(404).json({ sucesso: false, mensagem: 'Aluno não encontrado.', dados: null });
+            }
+
+            // Formata a data para exibir bonitinho
+            const aluno = rows[0];
+            aluno.data_nascimento = formatarDataPtBR(aluno.data_nascimento);
+            // Formata a data de inclusão se quiser
+            if(aluno.data_inclusao) aluno.data_inclusao = new Date(aluno.data_inclusao).toLocaleString('pt-BR');
+
+            return response.status(200).json({
+                sucesso: true,
+                mensagem: 'Aluno encontrado.',
+                dados: aluno
+            });
+
+        } catch (error) {
+            return response.status(500).json({ sucesso: false, mensagem: 'Erro ao buscar aluno.', dados: error.message });
+        }
+    },
+
+    //Editar informações do aluno
+    async editarAluno(request, response) {
+        try {
+            const { sala, id } = request.params;
+            const { nome, data_nascimento, endereco } = request.body;
+            const termo = sala.toLowerCase();
+
+            if (!['a', 'b', 'c'].includes(termo)) {
+                return response.status(400).json({ sucesso: false, mensagem: 'Sala inválida.', dados: null });
+            }
+
+            const tabela = `alunos_sala_${termo}`;
+            
+            // Atualiza Nome, Data e Endereço
+            const sql = `UPDATE ${tabela} SET nome = ?, data_nascimento = ?, endereco = ? WHERE id = ?`;
+            const values = [nome, data_nascimento, endereco, id];
+
+            const [result] = await db.query(sql, values);
+
+            if (result.affectedRows === 0) {
+                return response.status(404).json({ sucesso: false, mensagem: 'Aluno não encontrado para edição.', dados: null });
+            }
+
+            return response.status(200).json({
+                sucesso: true,
+                mensagem: 'Dados do aluno atualizados com sucesso.',
+                dados: { id, nome, data_nascimento, endereco }
+            });
+
+        } catch (error) {
+            return response.status(500).json({ sucesso: false, mensagem: 'Erro ao editar aluno.', dados: error.message });
+        }
+    },
+
+    //Remover Aluno
+    async removerAluno(request, response) {
+        try {
+            const { sala, id } = request.params;
+            const termo = sala.toLowerCase();
+
+            if (!['a', 'b', 'c'].includes(termo)) {
+                return response.status(400).json({ sucesso: false, mensagem: 'Sala inválida.', dados: null });
+            }
+
+            const tabela = `alunos_sala_${termo}`;
+            const sql = `DELETE FROM ${tabela} WHERE id = ?`;
+
+            const [result] = await db.query(sql, [id]);
+
+            if (result.affectedRows === 0) {
+                return response.status(404).json({ sucesso: false, mensagem: 'Aluno não encontrado.', dados: null });
+            }
+
+            return response.status(200).json({
+                sucesso: true,
+                mensagem: 'Aluno removido com sucesso.',
+                dados: { id_removido: id }
+            });
+
+        } catch (error) {
+            return response.status(500).json({ sucesso: false, mensagem: 'Erro ao remover aluno.', dados: error.message });
+        }
+    },
+
     //Listagem completa dos alunos de cada Sala
     async listarPorSala(request, response) {
         try {
