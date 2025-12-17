@@ -28,5 +28,7 @@ const AlunoController = require('../controllers/Alunos')
    
  router.delete("/sala/:sala/:id", AlunoController.removerAluno); // Remover aluno
 
+ router.get("/sala/busca/:sala/:nome", AlunoController.buscarPorNome) // Busca por nome de aluno
+
 
 module.exports = router;

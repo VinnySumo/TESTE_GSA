@@ -323,7 +323,7 @@ module.exports = {
         }
     },
 
-
+    //Atualizar data para o dia de hoje
     async atualizarDatas(request, response) {
         try {
             // Pega o parâmetro da URL (a, b, c ou todas)
@@ -355,7 +355,7 @@ module.exports = {
                 mensagem = 'Datas de nascimento de TODAS as salas atualizadas para hoje.';
             
             } else {
-                // Atualiza UMA sala específica (dinâmico)
+                // Atualiza uma sala específica 
                 const tabela = `alunos_sala_${termo}`;
                 const update = await db.query(`UPDATE ${tabela} SET data_nascimento = CURRENT_DATE()`);
                 
@@ -381,6 +381,7 @@ module.exports = {
         }
     },
 
+    //Deleta os numero 13 a 22 da sala escolhida
    async deletarIntervalo(request, response) {
         try {
             const { sala } = request.params;
@@ -417,13 +418,12 @@ module.exports = {
         }
     },
 
-    // --- RESETAR TABELAS (TRUNCATE) ---
+    // Reseta a sala escolhida
     async resetarTabela(request, response) {
         try {
             const { sala } = request.params;
             const termo = sala ? sala.toLowerCase() : '';
 
-            // 1. Validação
             if (!['a', 'b', 'c', 'todas'].includes(termo)) {
                 return response.status(400).json({
                     sucesso: false,
@@ -431,15 +431,14 @@ module.exports = {
                     dados: null
                 });
             }
-
-            // 2. Desativa trava de segurança (apenas por precaução)
+            
+            //desliga a trava de segurança
             await db.query("SET SQL_SAFE_UPDATES = 0;");
 
             let mensagem = '';
 
-            // 3. Lógica do Truncate
             if (termo === 'todas') {
-                // Reseta TODAS as tabelas
+                // Reseta todas as tabelas
                 await db.query("TRUNCATE TABLE alunos_sala_a");
                 await db.query("TRUNCATE TABLE alunos_sala_b");
                 await db.query("TRUNCATE TABLE alunos_sala_c");
@@ -447,20 +446,20 @@ module.exports = {
                 mensagem = 'Todas as tabelas foram resetadas e os IDs voltaram a ser 1.';
             
             } else {
-                // Reseta UMA tabela específica
+                // Reseta uma tabela específica
                 const tabela = `alunos_sala_${termo}`;
                 await db.query(`TRUNCATE TABLE ${tabela}`);
                 
                 mensagem = `Tabela da Sala ${termo.toUpperCase()} resetada com sucesso (IDs zerados).`;
             }
 
-            // 4. Reativa trava
+            // 4. Reativa a trava
             await db.query("SET SQL_SAFE_UPDATES = 1;");
 
             return response.status(200).json({
                 sucesso: true,
                 mensagem: mensagem,
-                dados: null // O comando TRUNCATE não retorna número de linhas afetadas
+                dados: null 
             });
 
         } catch (error) {
@@ -471,5 +470,70 @@ module.exports = {
             });
         }
     },
+
+    //Pesquisa por nome do aluno
+    async buscarPorNome(request, response) {
+        try {
+            // Pegamos a sala e o nome digitado
+            const { sala, nome } = request.params;
+            const termoSala = sala ? sala.toLowerCase() : '';
+            const termoBusca = `%${nome}%`; // Adiciona % para buscar em qualquer parte do texto
+
+            // Validação da sala
+            if (!['a', 'b', 'c', 'todas'].includes(termoSala)) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Sala inválida. Escolha: a, b, c ou todas.',
+                    dados: null
+                });
+            }
+
+            let sql = '';
+            let values = []; // Array para substituir os "?" no SQL com segurança
+
+            if (termoSala === 'todas') {
+                sql = `
+                    SELECT *, 'Sala A' as origem FROM alunos_sala_a WHERE nome LIKE ?
+                    UNION ALL
+                    SELECT *, 'Sala B' as origem FROM alunos_sala_b WHERE nome LIKE ?
+                    UNION ALL
+                    SELECT *, 'Sala C' as origem FROM alunos_sala_c WHERE nome LIKE ?
+                    ORDER BY nome ASC
+                `;
+                // O termoBusca repete 3 vezes pq temos 3 "?" no SQL acima
+                values = [termoBusca, termoBusca, termoBusca];
+            
+            } else {
+                const tabela = `alunos_sala_${termoSala}`;
+                sql = `SELECT *, 'Sala ${termoSala.toUpperCase()}' as origem FROM ${tabela} WHERE nome LIKE ? ORDER BY nome ASC`;
+                values = [termoBusca];
+            }
+
+            const alunos = await db.query(sql, values);
+            const dadosBrutos = alunos[0];
+
+            // Formatação das datas (Nascimento e Inclusão)
+            const dadosFormatados = dadosBrutos.map(aluno => ({
+                ...aluno,
+                data_nascimento: formatarDataPtBR(aluno.data_nascimento),
+                data_inclusao: formatarDataHoraPtBR(aluno.data_inclusao)
+            }));
+
+            return response.status(200).json({
+                sucesso: true,
+                mensagem: `Busca por "${nome}" realizada com sucesso.`,
+                dados: dadosFormatados,
+                nItens: dadosFormatados.length
+            });
+
+        } catch (error) {
+            return response.status(500).json({
+                sucesso: false,
+                mensagem: 'Erro na busca.',
+                dados: error.message
+            });
+        }
+    },
+
 };
 
