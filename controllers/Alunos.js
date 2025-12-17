@@ -16,49 +16,34 @@ const formatarDataPtBR = (dataISO) => {
 module.exports = {
 
     //Cadastro dos alunos
-    async cadastrarAluno(request, response) {
+   async cadastrarAluno(request, response) {
         try {
-            // Recebe os dados pelo corpo da requisição (JSON)
-            const { nome, data_nascimento, sala } = request.body;
+            // Agora recebemos também o endereço
+            const { nome, data_nascimento, endereco, sala } = request.body;
 
-            // Valida se a sala é válida
             if (!sala || !['a', 'b', 'c'].includes(sala.toLowerCase())) {
-                return response.status(400).json({
-                    sucesso: false,
-                    mensagem: 'Sala inválida ou não informada. Use: a, b ou c.',
-                    dados: null
-                });
+                return response.status(400).json({ sucesso: false, mensagem: 'Sala inválida.', dados: null });
             }
 
-            // Seleciona a tabela correta
             const tabela = `alunos_sala_${sala.toLowerCase()}`;
             
-            // Comando SQL de INSERT
-            const sql = `INSERT INTO ${tabela} (nome, data_nascimento) VALUES (?, ?)`;
-            const values = [nome, data_nascimento];
+            // SQL atualizado com endereco
+            const sql = `INSERT INTO ${tabela} (nome, data_nascimento, endereco) VALUES (?, ?, ?)`;
+            const values = [nome, data_nascimento, endereco];
 
             const execucao = await db.query(sql, values);
             const idNovoAluno = execucao[0].insertId;
 
-            return response.status(201).json({ // 201 = Created
+            return response.status(201).json({
                 sucesso: true,
                 mensagem: `Aluno cadastrado com sucesso na Sala ${sala.toUpperCase()}.`,
-                dados: { 
-                    id: idNovoAluno,
-                    nome,
-                    data_nascimento
-                }
+                dados: { id: idNovoAluno, nome, data_nascimento, endereco }
             });
-
         } catch (error) {
-            return response.status(500).json({
-                sucesso: false,
-                mensagem: 'Erro ao cadastrar aluno.',
-                dados: error.message
-            });
+            return response.status(500).json({ sucesso: false, mensagem: 'Erro ao cadastrar.', dados: error.message });
         }
-    },
-
+    }, 
+    
     //Listagem completa dos alunos de cada Sala
     async listarPorSala(request, response) {
         try {
