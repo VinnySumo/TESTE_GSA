@@ -206,11 +206,10 @@ module.exports = {
      //Busca por sobrenome ou nome alves na sala 
      async buscarAlves(request, response) {
         try {
-            // 1. Pega o parâmetro da URL
+            
             const { sala } = request.params;
             const termo = sala ? sala.toLowerCase() : '';
 
-            // 2. Validação
             if (!['a', 'b', 'c', 'todas'].includes(termo)) {
                 return response.status(400).json({
                     sucesso: false,
@@ -222,7 +221,7 @@ module.exports = {
             let sql = '';
             let mensagem = '';
 
-            // 3. Define o SQL baseado na escolha
+            //Busca geral em todas as salas
             if (termo === 'todas') {
                 sql = `
                     SELECT nome, 'Sala A' as sala_origem FROM alunos_sala_a WHERE nome LIKE '%Alves%'
@@ -235,19 +234,16 @@ module.exports = {
                 mensagem = 'Busca por sobrenome Alves em todas as salas realizada com sucesso.';
             
             } else {
-                // Busca em UMA sala específica
+                // Busca em uma sala específica
                 const tabela = `alunos_sala_${termo}`;
                 
-                // Nota: Adicionei a coluna sala_origem fixa para manter o padrão do seu código anterior
                 sql = `SELECT nome, 'Sala ${termo.toUpperCase()}' AS sala_origem FROM ${tabela} WHERE nome LIKE '%Alves%' ORDER BY nome ASC`;
                 mensagem = `Busca por sobrenome Alves na Sala ${termo.toUpperCase()} realizada com sucesso.`;
             }
 
-            // 4. Executa a query
             const alunos = await db.query(sql);
             const dados = alunos[0];
 
-            // Retorno
             return response.status(200).json({
                 sucesso: true,
                 mensagem: mensagem,
