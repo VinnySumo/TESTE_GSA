@@ -12,7 +12,7 @@ const AlunoController = require('../controllers/Alunos')
 
  router.get("/sala/:sala/:id", AlunoController.visualizarAluno); // Trazer informações de um aluno
 
- router.put("/sala/:sala/:id,", AlunoController.editarAluno); // Editar informações de um aluno
+ router.put("/sala/:sala/:id", AlunoController.editarAluno); // Editar informações de um aluno
 
  router.delete("/sala/:sala/:id", AlunoController.removerAluno); // Remover aluno
 
