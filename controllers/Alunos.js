@@ -311,6 +311,61 @@ module.exports = {
                 dados: error.message
             });
         }
-    }
+    },
+
+    // --- RESETAR TABELAS (TRUNCATE) ---
+    async resetarTabela(request, response) {
+        try {
+            const { sala } = request.params;
+            const termo = sala ? sala.toLowerCase() : '';
+
+            // 1. Validação
+            if (!['a', 'b', 'c', 'todas'].includes(termo)) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Opção inválida. Escolha: a, b, c ou todas.',
+                    dados: null
+                });
+            }
+
+            // 2. Desativa trava de segurança (apenas por precaução)
+            await db.query("SET SQL_SAFE_UPDATES = 0;");
+
+            let mensagem = '';
+
+            // 3. Lógica do Truncate
+            if (termo === 'todas') {
+                // Reseta TODAS as tabelas
+                await db.query("TRUNCATE TABLE alunos_sala_a");
+                await db.query("TRUNCATE TABLE alunos_sala_b");
+                await db.query("TRUNCATE TABLE alunos_sala_c");
+                
+                mensagem = 'Todas as tabelas foram resetadas e os IDs voltaram a ser 1.';
+            
+            } else {
+                // Reseta UMA tabela específica
+                const tabela = `alunos_sala_${termo}`;
+                await db.query(`TRUNCATE TABLE ${tabela}`);
+                
+                mensagem = `Tabela da Sala ${termo.toUpperCase()} resetada com sucesso (IDs zerados).`;
+            }
+
+            // 4. Reativa trava
+            await db.query("SET SQL_SAFE_UPDATES = 1;");
+
+            return response.status(200).json({
+                sucesso: true,
+                mensagem: mensagem,
+                dados: null // O comando TRUNCATE não retorna número de linhas afetadas
+            });
+
+        } catch (error) {
+            return response.status(500).json({
+                sucesso: false,
+                mensagem: 'Erro ao resetar tabela(s).',
+                dados: error.message
+            });
+        }
+    },
 };
 
