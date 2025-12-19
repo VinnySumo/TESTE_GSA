@@ -521,7 +521,7 @@ module.exports = {
 
             return response.status(200).json({
                 sucesso: true,
-                mensagem: `Busca por "${nome}" realizada com sucesso.`,
+                mensagem: `Busca por ${nome} realizada com sucesso.`,
                 dados: dadosFormatados,
                 nItens: dadosFormatados.length
             });
