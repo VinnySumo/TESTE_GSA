@@ -66,5 +66,4 @@ As credenciais de conexão estão configuradas para uso local:
 
    "Servidor iniciado na porta 3333"
 
-
-   Desenvolvido por [Vynicios Raphael] #VinnySumo
+ Desenvolvido por [Vynicios Raphael] #VinnySumo
