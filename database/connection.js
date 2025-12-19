@@ -4,7 +4,7 @@ const bd_usuario = 'root';
 const bd_senha = '1234';
 const bd_servidor = 'localhost';
 const bd_porta = '3306';
-const bd_banco = 'banco_gsa';
+const bd_banco = 'banco_gsa_teste';
 let connection;
 
 const config = {
