@@ -43,6 +43,7 @@ As credenciais de conexão estão configuradas para uso local:
 - **Host:** localhost
 - **User:** root
 - **Port:** 3306
+- **Port:** (Senha que usa no seu banco de dados)
 
 > 💡 **Dica:** O script SQL para criar e popular o banco está na pasta `/database` deste projeto. Importe-o no seu Workbench/HeidiSQL antes de iniciar.
 
