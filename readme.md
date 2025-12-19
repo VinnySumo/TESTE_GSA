@@ -15,9 +15,6 @@ API REST desenvolvida em **Node.js** responsável por gerenciar a comunicação 
 
 A API roda localmente na porta **3333** (`http://localhost:3333`) e organiza as rotas focadas nas operações por sala.
 
-### 🏥 Utilitários
-- `GET /health`: Verifica se a API está online e respondendo.
-
 ### 📝 Rotas Gerais (CRUD)
 - `GET /sala/:sala`: Lista todos os alunos da sala escolhida (#teste 1).
 - `GET /sala/:sala/:id`: Visualiza um aluno específico.
