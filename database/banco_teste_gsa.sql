@@ -2,7 +2,7 @@ CREATE DATABASE  IF NOT EXISTS `banco_gsa_teste` /*!40100 DEFAULT CHARACTER SET 
 USE `banco_gsa_teste`;
 -- MySQL dump 10.13  Distrib 8.0.44, for Win64 (x86_64)
 --
--- Host: localhost    Database: banco_gsa
+-- Host: localhost    Database: banco_gsa_teste
 -- ------------------------------------------------------
 -- Server version	8.0.44
 
